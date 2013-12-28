@@ -1,0 +1,28 @@
+#!/bin/bash
+
+# Using "./mk -a" rebuilds all ignoring date-stamps
+
+OPT="-O6 -s -c -DT_LINUX"
+#OPT="-g -c -Wall -DDEBUG_ON -DT_LINUX"
+
+[ "$1" = "-a" ] && {
+    rm *.o
+    shift
+}
+
+SDLLIB="$(sdl-config --libs)"
+OBJ=""
+
+for xx in analysis.c bwview.c config.c display.c file.c graphics.c settings.c
+do
+    obj=${xx%.c}.o
+    if [ ! -f $obj ] || [ $xx -nt $obj ]
+    then
+	echo === $xx
+	gcc $OPT $xx || { echo "FAILED"; exit 1; }
+    fi
+    OBJ="$OBJ $obj"
+done
+
+gcc $OBJ -lSDL -lfftw3 -lm $SDLLIB -o ../bwview || { echo "FAILED"; exit 1; }
+

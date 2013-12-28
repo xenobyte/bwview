@@ -1,0 +1,19 @@
+#!/bin/sh
+
+OPT="-O6 -s -c"
+
+OPT="$OPT -DT_MINGW -Dmain=SDL_main -I /msys/1.0/mingw/include/SDL"
+
+for xx in analysis.c bwview.c config.c display.c file.c graphics.c settings.c
+do
+    echo "=== $xx"
+    gcc $OPT $xx || { echo "FAILED"; exit 1; }
+    OBJ="$OBJ ${xx%.c}.o"
+done
+
+gcc main_redir.c ../../fftw-2.1.3/fftw/*.o ../../fftw-2.1.3/rfftw/*.o $OBJ \
+    -lmingw32 -lSDLmain -lSDL -lm -o ../bwview || 
+{ echo "FAILED"; exit 1; }
+
+
+
