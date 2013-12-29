@@ -118,10 +118,10 @@ struct BWAnal {
    int m_plan;		// Maximum plans (i.e. allocated size of plan[])
 
    int inp_siz;		// Size of data in inp[], or 0 if not valid
-   fftw_real *inp;	// FFT'd input data (half-complex)
-   fftw_real *wav;	// FFT'd wavelet (real)
-   fftw_real *tmp;	// General workspace (complex), also used by IIR
-   fftw_real *out;	// Output (complex)
+   double *inp;	// FFT'd input data (half-complex)
+   double *wav;	// FFT'd wavelet (real)
+   double *tmp;	// General workspace (complex), also used by IIR
+   double *out;	// Output (complex)
 
    // Publically readable unchanging information
    int n_chan;		// Number of channels in input file
@@ -222,7 +222,7 @@ load_data(BWAnal *aa, int siz) {
 //
 
 static void 
-copy_samples(BWAnal *aa, fftw_real *arr, int off, int chan, int len, int errors) {
+copy_samples(BWAnal *aa, double *arr, int off, int chan, int len, int errors) {
    int bsiz= aa->bsiz;
 
    DEBUG("Copy samples: off %d, len %d, end %d", off, len, off+len);
@@ -493,13 +493,13 @@ bwanal_start(BWAnal *aa) {
    // Allocate FFT arrays big enough for any line that we need to
    // calculate.  (They were released above)
    if (analtyp == 0) {
-      aa->inp= ALLOC_ARR(maxsiz, fftw_real);
-      aa->wav= ALLOC_ARR(maxsiz, fftw_real);
-      aa->tmp= ALLOC_ARR(maxsiz*2, fftw_real);
-      aa->out= ALLOC_ARR(maxsiz*2, fftw_real);
+      aa->inp= ALLOC_ARR(maxsiz, double);
+      aa->wav= ALLOC_ARR(maxsiz, double);
+      aa->tmp= ALLOC_ARR(maxsiz*2, double);
+      aa->out= ALLOC_ARR(maxsiz*2, double);
       aa->inp_siz= 0;
    } else {
-      aa->tmp= ALLOC_ARR(maxsiz, fftw_real);
+      aa->tmp= ALLOC_ARR(maxsiz, double);
    }
 
    // Ready to start filling in lines
@@ -524,7 +524,7 @@ bwanal_window(BWAnal *aa, int xx, int yy) {
    int sx= aa->c.sx;
    int tbase= aa->c.tbase;
    int len= sx * tbase;
-   fftw_real *tmp= ALLOC_ARR(len, fftw_real);
+   double *tmp= ALLOC_ARR(len, double);
    int wind= yy >= 0 && xx >= 0;	// Are we applying a window ?
 
    aa->sig_wind= wind;
@@ -622,7 +622,7 @@ bwanal_calc(BWAnal *aa) {
    int wid, pwid;
    int start;
    int sx, tbase;
-   fftw_real *p, *p0, *p1, *q, *r;
+   double *p, *p0, *p1, *q, *r;
    float *fp;
    double sincos[4];
 
@@ -707,7 +707,7 @@ bwanal_calc(BWAnal *aa) {
    // Handle 1..(siz/2-1)
    p0= aa->inp+1; p1= aa->inp + siz;
    for (a= 1; a<siz2; a++) {
-      fftw_real mult= *q++;
+      double mult= *q++;
       *r++= *p0++ * mult;
       *r++= *--p1 * mult;
    }
@@ -717,7 +717,7 @@ bwanal_calc(BWAnal *aa) {
 
    // Handle (siz/2+1)..(siz-1)
    for (a= siz2+1; a<siz; a++) {
-      fftw_real mult= *q++;
+      double mult= *q++;
       *r++= *--p0 * mult;
       *r++= *p1++ * -mult;	// Complex conjugate
    }
